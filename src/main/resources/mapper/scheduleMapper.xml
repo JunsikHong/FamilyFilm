@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jun.familyfilm.schedule.service.scheduleMapper">
+
+	<!-- schedule 가져오기 -->
+	<select id="getSchedulePreviewList">
+		select f.*, s.*
+		from (select family_group_num, family_relationship_proper_num, user_id
+			  from FAMILY
+			  where family_group_num = #{family_group_num}) f
+		join (select schedule_proper_num, schedule_title, schedule_date, schedule_color, family_group_num, user_id
+			  from SCHEDULE
+			  where family_group_num = #{family_group_num}) s
+		on f.user_id = s.user_id
+		where month(schedule_date) = #{month}
+	</select>
+	
+	<!-- 특정 schedule 가져오기 -->
+	<select id="getScheduleDetail">
+		select f.*, s.*
+		from (select *
+			  from FAMILY
+			  where family_group_num = #{family_group_num}) f
+		join (select *
+			  from SCHEDULE
+			  where family_group_num = #{family_group_num}) s
+		on f.user_id = s.user_id
+		where date(str_to_date(#{scheduleDate}, '%Y-%m-%d')) = date(schedule_date);
+	</select>
+	
+	<!-- 새로운 스케쥴 등록 -->
+	<insert id="saveNewSchedule">
+		insert into SCHEDULE (
+			schedule_proper_num,
+			schedule_title,
+			schedule_date,
+			schedule_color,
+			schedule_ar,
+			family_group_num,
+			user_id
+		) select
+			coalesce (
+				(select max(schedule_proper_num)+1 
+		 		 from SCHEDULE
+         		 where cast(substring(schedule_proper_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+				 , concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+			#{schedule_title},
+			#{schedule_date},
+			#{schedule_color},
+			#{schedule_ar},
+			#{family_group_num},
+			#{user_id}
+	</insert>
+	
+	<update id="saveModifySchedule">
+		update SCHEDULE
+		set schedule_title = #{schedule_title},
+		schedule_date = #{schedule_date},
+		schedule_color = #{schedule_color},
+		schedule_ar = #{schedule_ar},
+		family_group_num = #{family_group_num},
+		user_id = #{user_id}
+		where schedule_proper_num = #{schedule_proper_num}
+	</update>
+	
+	<delete id="deleteSchedule">
+		delete from SCHEDULE
+		where schedule_proper_num = #{schedule_proper_num}
+	</delete>
+</mapper>

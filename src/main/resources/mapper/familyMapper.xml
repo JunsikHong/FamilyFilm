@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="com.jun.familyfilm.family.service.familyMapper">
+
+	<select id="isExistFamily">
+		select *
+		from FAMILY
+		where user_id = #{user_id}
+	</select>
+
+	<insert id="registFamily">
+		insert into FAMILY (
+			family_proper_num,
+			family_group_num,
+			family_group_pw,
+			family_name,
+			family_introduce,
+			user_id,
+			family_relationship_proper_num
+		) select
+			coalesce (
+				(select max(family_proper_num)+1
+				from FAMILY
+				where cast(substring(family_proper_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+				, concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+			<choose>
+				<when test="family_group_num != null and family_group_num != ''">
+					#{family_group_num},
+				</when>
+				<otherwise>
+					coalesce (
+						(select max(family_group_num)+1
+						from FAMILY
+						where cast(substring(family_group_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+						, concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+				</otherwise>
+			</choose>
+			#{family_group_pw},
+			#{family_name},
+			#{family_introduce},
+			#{user_id},
+			#{family_relationship_proper_num}
+	</insert>
+	
+	<select id="getFamilyGroupNum">
+		select family_group_num
+		from FAMILY
+		where user_id = #{user_id}
+	</select>
+	
+	<select id="getFamilyInfo">
+		select *
+		from FAMILY
+		where family_group_num = #{family_group_num}
+		limit 0,1
+	</select>
+	
+	<insert id="inputRelationY">
+		insert into FAMILY (
+			family_proper_num,
+			family_group_num,
+			family_group_pw,
+			family_name,
+			family_introduce,
+			user_id,
+			family_relationship_proper_num
+		) select
+			coalesce (
+				(select max(family_proper_num)+1
+				from FAMILY
+				where cast(substring(family_proper_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+				, concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+			#{family_group_num},
+			#{family_group_pw},
+			#{family_name},
+			#{family_introduce},
+			#{user_id},
+			#{family_relationship_proper_num}
+	</insert>
+	
+</mapper>

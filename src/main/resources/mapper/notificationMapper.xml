@@ -1,0 +1,59 @@
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jun.familyfilm.notification.service.notificationMapper">
+	<insert id="invite">
+		insert into NOTIFICATION (
+			notification_proper_num,
+			notification_title,
+			notification_type,
+			notification_read_yn,
+			user_id,
+			family_group_num
+		) select
+			coalesce (
+				(select max(notification_proper_num)+1
+				from NOTIFICATION
+				where cast(substring(notification_proper_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+				, concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+			#{notification_title},
+			#{notification_type},
+			'N',
+			#{user_id},
+			#{family_group_num}
+	</insert>
+	
+	<select id="findUserId">
+		select user_id
+		from USER
+		where user_id = #{user_id}
+	</select>
+	
+	<select id="findFamilyName">
+		select family_name
+		from FAMILY
+		where family_proper_num = #{family_proper_num}
+	</select>
+	
+	<select id="selectNotification">
+		select notification_proper_num, notification_title, notification_content, notification_type, notification_read_yn, notification_date, n.user_id, n.family_group_num, family_name
+		from NOTIFICATION n
+		join FAMILY f
+		on n.family_group_NUM = f.family_group_NUM
+		where n.user_id = #{user_id}
+		and notification_read_yn = 'N'
+	</select>
+	
+	<update id="inviteAccept">
+		update NOTIFICATION
+		set notification_read_yn = 'Y', notification_invite_yn = 'Y'
+		where notification_proper_num = #{notification_proper_num}
+	</update>
+	
+	<update id="inviteDeny">
+		update NOTIFICATION
+		set notification_read_yn = 'Y', notification_invite_yn = 'N'
+		where notification_proper_num = #{notification_proper_num}
+	</update>
+</mapper>

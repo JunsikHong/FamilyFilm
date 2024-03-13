@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jun.familyfilm.login.service.logInMapper">
+
+	<select id="login">
+		select user_id, user_pw
+		from USER
+		where user_id = #{user_id} and user_delete_yn = 'N'
+	</select>
+	
+	<insert id="join">
+		insert into USER (
+			user_proper_num,
+			user_id,
+			user_pw,
+			user_name,
+			user_birth
+		) select
+			coalesce (
+				(select max(user_proper_num)+1 
+		 		 from USER
+         		 where cast(substring(user_proper_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+				 , concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+			#{user_id},
+			#{user_pw},
+			#{user_name},
+			#{user_birth}
+	</insert>
+	
+	<select id="idDuplicateCheck">
+		select count(*) 
+		from USER
+		where user_id = #{user_id} 
+	</select>
+
+</mapper>

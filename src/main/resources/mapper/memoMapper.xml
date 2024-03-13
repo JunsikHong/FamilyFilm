@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jun.familyfilm.memo.service.memoMapper">
+
+	<!-- memo 5개 가져오기 -->
+	<select id="getMemoPreviewList">
+		select f.*, m.*
+		from (select family_group_num, family_relationship_proper_num, user_id
+			  from FAMILY
+			  where family_group_num = #{family_group_num}) f
+		join (select memo_proper_num, memo_title, memo_content, memo_modify_date, family_group_num, user_id
+			  from MEMO
+			  where family_group_num = #{family_group_num}) m
+		on f.user_id = m.user_id
+		order by memo_modify_date desc
+		limit 0,12
+	</select>
+	
+	<select id="getMoreMemoPreviewList">
+		select memo_proper_num, memo_title, memo_modify_date, family_proper_num
+		from MEMO
+		order by memo_modify_date desc
+		limit 0, #{memoLength}
+	</select>
+	
+	<!-- memo 상세정보 가져오기 -->
+	<select id="getMemoDetail">
+		select *
+		from MEMO
+		where memo_proper_num = #{memo_proper_num}
+	</select>
+	
+	<update id="modifyMemo">
+		update MEMO
+		set memo_title = #{memo_title}, memo_content = #{memo_content}, memo_modify_date = now(), user_id = #{user_id}
+		where memo_proper_num = #{memo_proper_num}
+	</update>
+	
+	<insert id="createMemo">
+		insert into MEMO (
+			memo_proper_num,
+			memo_title,
+			memo_content,
+			family_group_num,
+			user_id
+		) select
+			coalesce (
+				(select max(memo_proper_num)+1 
+		 		 from MEMO
+         		 where cast(substring(memo_proper_num, 1, 6) as date) = DATE_FORMAT(CURDATE(), '%y%m%d'))
+				 , concat(DATE_FORMAT(CURDATE(), '%y%m%d'), '00001')),
+			#{memo_title},
+			#{memo_content},
+			#{family_group_num},
+			#{user_id}
+	</insert>
+	
+	<delete id="deleteMemo">
+		delete from MEMO
+		where memo_proper_num = #{memo_proper_num}
+	</delete>
+</mapper>
